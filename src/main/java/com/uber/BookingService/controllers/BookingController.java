@@ -6,6 +6,7 @@ import com.uber.BookingService.dtos.CreateBookingResponseDto;
 import com.uber.BookingService.dtos.UpdateBookingRequestDto;
 import com.uber.BookingService.dtos.UpdateBookingResponseDto;
 import com.uber.BookingService.services.BookingService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,11 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/booking/")
 public class BookingController {
 
-    private final BookingService bookingService;
-
-    public BookingController(BookingService bookingService) {
-        this.bookingService = bookingService;
-    }
+    @Autowired
+    private BookingService bookingService;
 
     @PostMapping(AppConstant.CREATE_BOOKING)
     public ResponseEntity<CreateBookingResponseDto> createBooking(@RequestBody CreateBookingRequestDto createBookingRequestDto) {

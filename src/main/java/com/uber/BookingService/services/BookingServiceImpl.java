@@ -1,9 +1,11 @@
 package com.uber.BookingService.services;
 
+import com.google.gson.Gson;
 import com.uber.BookingService.apis.LocationServiceApi;
 import com.uber.BookingService.apis.SocketServiceApi;
 import com.uber.BookingService.constant.BookingStatus;
 import com.uber.BookingService.dtos.*;
+import com.uber.BookingService.exception.AppException;
 import com.uber.BookingService.models.Booking;
 import com.uber.BookingService.models.Driver;
 import com.uber.BookingService.models.Passenger;
@@ -11,6 +13,7 @@ import com.uber.BookingService.repositories.BookingRepository;
 import com.uber.BookingService.repositories.DriverRepository;
 import com.uber.BookingService.repositories.PassengerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -54,7 +57,8 @@ public class BookingServiceImpl implements BookingService {
         Booking newBooking = bookingRepository.save(booking);
 
         GetNearbyDriverRequestDto getNearbyDriverRequestDto = GetNearbyDriverRequestDto.builder()
-                                                                                       .latitude(createBookingRequestDto.getStartLocation().getLatitude()).longitude(createBookingRequestDto.getStartLocation().getLongitude())
+                                                                                       .latitude(createBookingRequestDto.getStartLocation().getLatitude())
+                                                                                       .longitude(createBookingRequestDto.getStartLocation().getLongitude())
                                                                                        .build();
 
 
@@ -91,9 +95,8 @@ public class BookingServiceImpl implements BookingService {
                     try {
                         Response<Void> responseSendRideRequestToDrivers = callSendRideRequestToDrivers.execute();
                     } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        throw new AppException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
                     }
-
 
                 } else {
                     System.out.println("Request failed with error : " + response.errorBody());
@@ -117,6 +120,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public synchronized UpdateBookingResponseDto updateBooking(UpdateBookingRequestDto updateBookingRequestDto) {
+        System.out.println("updateBookingRequestDto :: " + new Gson().toJson(updateBookingRequestDto));
+
         Optional<Driver> driver = driverRepository.findById(updateBookingRequestDto.getDriverId());
 
         bookingRepository.updateBookingStatusAndDriverById(updateBookingRequestDto.getBookingId(), updateBookingRequestDto.getBookingStatus(), driver.get());
